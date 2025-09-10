@@ -3,6 +3,7 @@ CMPS 6610  Problem Set 2
 See problemset-02.pdf for details.
 """
 import time
+import tabulate
 
 class BinaryNumber:
     """ done """
@@ -11,7 +12,7 @@ class BinaryNumber:
         self.binary_vec = list('{0:b}'.format(n)) 
         
     def __repr__(self):
-        return('decimal=%d binary=%s' % (self.decimal_val, ''.join(self.binary_vec))
+        return('decimal=%d binary=%s' % (self.decimal_val, ''.join(self.binary_vec)))
     
 
 ## Implement multiplication functions here. Note that you will have to
@@ -44,14 +45,50 @@ def pad(x,y):
     return x,y
     
 def quadratic_multiply(x, y):
-    ### TODO
-    pass
-    ###
+    if x.decimal_val < 2 or y.decimal_val < 2:
+        return BinaryNumber(x.decimal_val * y.decimal_val)
+    
+    x_vec, y_vec = pad(x.binary_vec, y.binary_vec)
+    n = len(x_vec)
+    m = n // 2
+    
+    xL, xR = split_number(x_vec)
+    yL, yR = split_number(y_vec)
+
+    p1 = quadratic_multiply(xL, yL)
+    p2 = quadratic_multiply(xL, yR)
+    p3 = quadratic_multiply(xR, yL)
+    p4 = quadratic_multiply(xR, yR)
+
+    return BinaryNumber(
+        bit_shift(p1, 2*m).decimal_val +
+        bit_shift(BinaryNumber(p2.decimal_val + p3.decimal_val), m).decimal_val +
+        p4.decimal_val
+    )
 
 def subquadratic_multiply(x, y):
-    ### TODO
-    pass
-    ###
+    if x.decimal_val < 2 or y.decimal_val < 2:
+        return BinaryNumber(x.decimal_val * y.decimal_val)
+
+    x_vec, y_vec = pad(x.binary_vec, y.binary_vec)
+    n = len(x_vec)
+    m = n // 2
+
+    xL, xR = split_number(x_vec)
+    yL, yR = split_number(y_vec)
+
+    p1 = subquadratic_multiply(xL, yL)
+    p2 = subquadratic_multiply(xR, yR)
+    p3 = subquadratic_multiply(
+        BinaryNumber(xL.decimal_val + xR.decimal_val),
+        BinaryNumber(yL.decimal_val + yR.decimal_val)
+    )
+
+    return BinaryNumber(
+        bit_shift(p1, 2*m).decimal_val +
+        bit_shift(BinaryNumber(p3.decimal_val - p1.decimal_val - p2.decimal_val), m).decimal_val +
+        p2.decimal_val
+    )
 
 ## Feel free to add your own tests here.
 def test_multiply():
@@ -84,3 +121,5 @@ def print_results(results):
     
     
 
+if __name__ == "__main__":
+    compare_multiply()
